@@ -3,6 +3,17 @@ from rest_framework.views import APIView
 
 
 from account.forms import SignupForm
+from account.serializers import UserMeSerializer
+from account.models import User
+
+
+class UserMe(APIView):
+
+    def get(self, request):
+        data = User.objects.filter(id=request.user.id)
+        data = UserMeSerializer(data, many=True).data
+        return Response(data)
+
 
 class SingUp(APIView):
     permission_classes = []
@@ -10,7 +21,6 @@ class SingUp(APIView):
     def post(self, request):
         data = request.data
         message = 'success'
-        print(data)
 
         form = SignupForm({
             'email': data.get('email'),
@@ -19,14 +29,11 @@ class SingUp(APIView):
             'password2': data.get('password2'),
         })
 
-        print(form)
         if form.is_valid():
             user = form.save()
             user.is_active = True
             user.save()
         else:
             form.errors.as_json()
-
-        print(message)
 
         return Response({'message': message})
