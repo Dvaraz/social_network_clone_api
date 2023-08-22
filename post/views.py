@@ -10,7 +10,14 @@ from account.serializers import UserMeSerializer
 
 
 class PostListView(ListAPIView):
-    queryset = Post.objects.all()
+
+    def get_queryset(self):
+        user_ids = [self.request.user.id]
+
+        for user in self.request.user.friends.all():
+            user_ids.append(user.id)
+        posts = Post.objects.filter(created_by_id__in=list(user_ids))
+        return posts
 
     serializer_class = PostSerializer
 
