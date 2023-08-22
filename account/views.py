@@ -1,10 +1,11 @@
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 
 from account.forms import SignupForm
-from account.serializers import UserMeSerializer
-from account.models import User
+from account.serializers import UserMeSerializer, FriendshipRequestSerializer
+from account.models import User, FriendshipRequest
 
 
 class UserMe(APIView):
@@ -37,3 +38,54 @@ class SingUp(APIView):
             form.errors.as_json()
 
         return Response({'message': message})
+
+
+class Friends(APIView):
+    def get(self, request, pk):
+        user = User.objects.get(pk=pk)
+        requests = []
+
+        if user == self.request.user:
+            requests = FriendshipRequest.objects.filter(created_for=self.request.user, status=FriendshipRequest.SENT)
+            requests = FriendshipRequestSerializer(requests, many=True)
+            requests = requests.data
+
+        friends = user.friends.all()
+
+        return Response({
+            'user': UserMeSerializer(user).data,
+            'friends': FriendshipRequestSerializer(friends, many=True).data,
+            'requests': requests
+        })
+
+
+class SendFriendshipRequest(APIView):
+    def post(self, request, pk):
+        user = User.objects.get(pk=pk)
+
+        friendship_request_check1 = FriendshipRequest.objects.filter(created_for=request.user).filter(created_by=user)
+        friendship_request_check2 = FriendshipRequest.objects.filter(created_for=user).filter(created_by=request.user)
+
+        if not friendship_request_check1 or not friendship_request_check2:
+            friendship_request = FriendshipRequest.objects.create(created_for=user, created_by=request.user)
+
+            return Response({'message': 'friendship request created'})
+        else:
+            return Response({'message': 'request already sent'})
+
+
+class HandleRequest(APIView):
+    def post(self, request, pk, status):
+        user = User.objects.get(pk=pk)
+        friendship_request = FriendshipRequest.objects.filter(created_for=request.user).get(created_by=user)
+        friendship_request.status = status
+        friendship_request.save()
+
+        user.friends.add(request.user)
+        user.save()
+
+        request_user = request.user
+        request_user.friends_count += 1
+        request_user.save()
+
+        return Response({'message': 'friendship request updated'})

@@ -7,7 +7,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django_filters import FilterSet, CharFilter
 from post.serializers import PostSerializer
+from account.serializers import UserMeSerializer
 from post.models import Post
+from account.models import User
 
 
 class SearchView(ListAPIView):
@@ -33,6 +35,30 @@ class SearchView(ListAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_class = PostFilter
 
+
+
+class SearchUsersView(ListAPIView):
+    class UserPaginator(LimitOffsetPagination):
+        def get_paginated_response(self, data):
+            return Response(OrderedDict([
+                ('count', self.count),
+                ('users', data)
+            ]))
+
+    class UserFilter(FilterSet):
+
+        name = CharFilter(field_name="name", lookup_expr="icontains")
+        email = CharFilter(field_name="email", lookup_expr="icontains")
+        class Meta:
+            model = User
+            fields = ['name', 'email']
+
+    permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
+    pagination_class = UserPaginator
+    serializer_class = UserMeSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = UserFilter
 # class Search(APIView):
 #     def post(self, request):
 #         data = request.data
