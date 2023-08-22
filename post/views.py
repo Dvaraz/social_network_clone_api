@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from post.serializers import PostSerializer
-from post.models import Post
+from post.models import Post, Like
 from post.forms import PostForm
 from account.models import User
 from account.serializers import UserMeSerializer
@@ -55,3 +55,19 @@ class PostCreate(APIView):
             return Response(serializer.data)
         else:
             return Response({"hey": "done"})
+
+
+class PostLike(APIView):
+    def post(self, request, id):
+        post = Post.objects.get(pk=id)
+
+        if not post.likes.filter(created_by=request.user):
+            like = Like.objects.create(created_by=request.user)
+
+            post.likes_count += 1
+            post.likes.add(like)
+            post.save()
+            return Response({'message': 'like created'})
+        else:
+            return Response({'message': 'post already liked'})
+
