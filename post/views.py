@@ -1,9 +1,9 @@
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from post.serializers import PostSerializer
-from post.models import Post, Like
+from post.serializers import PostSerializer, PostDetailSerializer, CommentSerializer
+from post.models import Post, Like, Comment
 from post.forms import PostForm
 from account.models import User
 from account.serializers import UserMeSerializer
@@ -25,6 +25,15 @@ class PostListView(ListAPIView):
         queryset = self.get_queryset()
         serializer = PostSerializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class PostDetail(APIView):
+    def get(self, request, id):
+        post = Post.objects.get(pk=id)
+
+        return Response({
+            'post': PostDetailSerializer(post).data
+        })
 
 
 class PostListProfile(APIView):
@@ -71,3 +80,16 @@ class PostLike(APIView):
         else:
             return Response({'message': 'post already liked'})
 
+
+class PostCreateComment(APIView):
+    def post(self, request, id):
+        comment = Comment.objects.create(body=request.data.get('body'), created_by=request.user)
+
+        post = Post.objects.get(pk=id)
+        post.comments.add(comment)
+        post.comments_count += 1
+        post.save()
+
+        serializer = CommentSerializer(comment)
+
+        return Response(serializer.data)
