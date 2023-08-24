@@ -59,6 +59,24 @@ class Friends(APIView):
         })
 
 
+class EditProfile(APIView):
+    def post(self, request):
+        user = request.user
+        email = request.data.get('email')
+
+        if User.objects.exclude(id=user.id).filter(email=email).exists():
+            return Response({'message': 'email already exists'})
+        else:
+            user.email = email
+            user.name = request.data.get('name')
+            user.save()
+
+            # serializer = UserMeSerializer(user)
+
+            # return Response({'message': 'information updated', 'user': serializer.data})
+            return Response({'message': 'information updated'})
+
+
 class SendFriendshipRequest(APIView):
     def post(self, request, pk):
         user = User.objects.get(pk=pk)
