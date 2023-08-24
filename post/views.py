@@ -2,8 +2,8 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from post.serializers import PostSerializer, PostDetailSerializer, CommentSerializer
-from post.models import Post, Like, Comment
+from post.serializers import PostSerializer, PostDetailSerializer, CommentSerializer, TrendSerializer
+from post.models import Post, Like, Comment, Trend
 from post.forms import PostForm
 from account.models import User
 from account.serializers import UserMeSerializer
@@ -91,5 +91,13 @@ class PostCreateComment(APIView):
         post.save()
 
         serializer = CommentSerializer(comment)
+
+        return Response(serializer.data)
+
+
+class Trends(APIView):
+    def get(self, request):
+        trends = Trend.objects.all()
+        serializer = TrendSerializer(trends, many=True)
 
         return Response(serializer.data)

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from post.views import PostListView, PostCreate, PostListProfile, PostLike, PostDetail, PostCreateComment
+from post.views import PostListView, PostCreate, PostListProfile, PostLike, PostDetail, PostCreateComment, Trends
 
 
 urlpatterns = [
@@ -10,6 +10,7 @@ urlpatterns = [
     path('<uuid:id>/comment/', PostCreateComment.as_view(), name='post_create_comment'),
     path('create/', PostCreate.as_view(), name='post_create'),
     path('profile/<uuid:id>/', PostListProfile.as_view(), name='post_list_profile'),
+    path('trends/', Trends.as_view(), name='get_trends'),
 ]
 
 
