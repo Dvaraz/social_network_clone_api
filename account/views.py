@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 
-from account.forms import SignupForm
+from account.forms import SignupForm, ProfileForm
 from account.serializers import UserMeSerializer, FriendshipRequestSerializer
 from account.models import User, FriendshipRequest
 
@@ -67,9 +67,10 @@ class EditProfile(APIView):
         if User.objects.exclude(id=user.id).filter(email=email).exists():
             return Response({'message': 'email already exists'})
         else:
-            user.email = email
-            user.name = request.data.get('name')
-            user.save()
+            form = ProfileForm(request.POST, request.FILES, instance=user)
+
+            if form.is_valid():
+                form.save()
 
             # serializer = UserMeSerializer(user)
 

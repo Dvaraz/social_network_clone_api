@@ -6,7 +6,7 @@ from account.models import User, FriendshipRequest
 class UserMeSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'name', 'friends_count', 'posts_count']
+        fields = ['id', 'email', 'name', 'friends_count', 'posts_count', 'get_avatar', ]
 
 
 class FriendshipRequestSerializer(serializers.ModelSerializer):
