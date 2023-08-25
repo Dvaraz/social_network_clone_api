@@ -1,4 +1,4 @@
-from rest_framework.generics import ListAPIView
+from django.contrib.auth.forms import PasswordChangeForm
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -35,7 +35,7 @@ class SingUp(APIView):
             user.is_active = True
             user.save()
         else:
-            form.errors.as_json()
+            message = form.errors.as_json()
 
         return Response({'message': message})
 
@@ -72,10 +72,22 @@ class EditProfile(APIView):
             if form.is_valid():
                 form.save()
 
-            # serializer = UserMeSerializer(user)
+            serializer = UserMeSerializer(user)
 
-            # return Response({'message': 'information updated', 'user': serializer.data})
-            return Response({'message': 'information updated'})
+            return Response({'message': 'information updated', 'user': serializer.data})
+
+
+class EditPassword(APIView):
+    def post(self, request):
+        user = request.user
+
+        form = PasswordChangeForm(data=request.POST, user=user)
+
+        if form.is_valid():
+            form.save()
+            return Response({'message': 'success'})
+        else:
+            return Response({'message': form.errors.as_json()})
 
 
 class SendFriendshipRequest(APIView):
