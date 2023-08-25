@@ -1,4 +1,5 @@
 from django.contrib.auth.forms import PasswordChangeForm
+from django.core.mail import send_mail
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -32,8 +33,19 @@ class SingUp(APIView):
 
         if form.is_valid():
             user = form.save()
-            user.is_active = True
+            user.is_active = False
             user.save()
+
+            url = f'http://127.0.0.1:8000/api/activateemail/?email={user.email}&id={user.id}'
+            # # url = f'{settings.WEBSITE_URL}/activateemail/?email={user.email}&id={user.id}'
+            #
+            send_mail(
+                "Please verify your email",
+                f"The url for activating your account is: {url}",
+                "noreply@wey.com",
+                [user.email],
+                fail_silently=False,
+            )
         else:
             message = form.errors.as_json()
 
@@ -120,3 +132,20 @@ class HandleRequest(APIView):
         request_user.save()
 
         return Response({'message': 'friendship request updated'})
+
+
+class ActivateEmail(APIView):
+    permission_classes = []
+    authentication_classes = []
+    def get(self, request):
+        email = request.GET.get('email', '')
+        id = request.GET.get('id', '')
+
+        if email and id:
+            user = User.objects.get(id=id, email=email)
+            user.is_active = True
+            user.save()
+
+            return Response('The user is now activated. You can go ahead and log in!')
+        else:
+            return Response('The parameters is not valid!')
