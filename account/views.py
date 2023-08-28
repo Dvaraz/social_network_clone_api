@@ -125,6 +125,7 @@ class HandleRequest(APIView):
         friendship_request.save()
 
         user.friends.add(request.user)
+        user.friends_count += 1
         user.save()
 
         request_user = request.user

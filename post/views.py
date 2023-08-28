@@ -7,6 +7,7 @@ from post.models import Post, Like, Comment, Trend
 from post.forms import PostForm, AttachmentForm
 from account.models import User
 from account.serializers import UserMeSerializer
+from notification.utils import create_notification
 
 
 class PostListView(ListAPIView):
@@ -90,6 +91,9 @@ class PostLike(APIView):
             post.likes_count += 1
             post.likes.add(like)
             post.save()
+
+            notification = create_notification(request, 'post_like', post_id=post.id)
+
             return Response({'message': 'like created'})
         else:
             return Response({'message': 'post already liked'})
